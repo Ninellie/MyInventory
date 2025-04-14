@@ -1,0 +1,86 @@
+<resources>
+    <string name="app_name">My Inventory</string>
+
+    <!-- Vendors Tab -->
+    <string name="vendors">Vendors</string>
+    <string name="new_vendor">New vendor</string>
+
+    <!-- Device Types Tab -->
+    <string name="device_types">Device types</string>
+    <string name="new_device_type">New device type</string>
+    <string name="field_types">Field types</string>
+
+    <!-- Models Tab -->
+    <string name="models">Models</string>
+    <string name="vendor">Vendor</string>
+    <string name="device_type">Device type</string>
+    <string name="new_model">New model</string>
+
+    <!-- Sites Tab -->
+    <string name="sites">Sites</string>
+    <string name="new_site">New site</string>
+
+    <!-- Locations Tab -->
+    <string name="locations">Locations</string>
+    <string name="site">Site</string>
+    <string name="new_location">New location</string>
+
+    <!-- Racks Tab -->
+    <string name="racks">Racks</string>
+    <string name="new_rack">New rack</string>
+    <string name="location">Location</string>
+
+    <!-- Field Types Tab -->
+    <string name="field_type">Field type</string>
+    <string name="new_field_type">New field type</string>
+
+    <!-- Devices Tab -->
+    <string name="devices">Devices</string>
+    <string name="new_device">New device</string>
+    <string name="model">Model</string>
+
+
+    <string name="fields">Fields</string>
+
+    <string name="language">Language</string>
+    <string name="english">English</string>
+    <string name="russian">Русский</string>
+
+    <!-- Buttons -->
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
+
+    <string name="new_name">New name</string>
+
+    <!-- Deletion dialog -->
+    <string name="delete_quastion">Delete?</string>
+    <string name="are_you_sure">"Are you sure? Delete"</string>
+
+    <!-- Field Types -->
+    <string name="field_type_text">Text</string>
+    <string name="field_type_coordinates">Coordinates</string>
+    <string name="field_type_url">Web URL</string>
+    <string name="field_type_phone">Phone number</string>
+    <string name="field_type_email">Email</string>
+    <string name="field_type_integer">Integer</string>
+    <string name="field_type_float">Float</string>
+    <string name="field_type_select">Select type</string>
+    <string name="device">Device</string>
+
+    <string name="rack">Rack</string>
+    <string name="settings">Settings</string>
+    <string name="search_by_name">Name</string>
+    <string name="filters">Filters</string>
+    <string name="add_device">Add device</string>
+    <string name="back">Back</string>
+    <string name="field_type_multiline_text">Multiline text</string>
+    <string name="selected">selected</string>
+
+    <string name="grouping">Grouping</string>
+    <string name="group_by_device_type">By device type</string>
+    <string name="clear_filters">Clear filters</string>
+    <string name="select_item">Select item</string>
+</resources>
