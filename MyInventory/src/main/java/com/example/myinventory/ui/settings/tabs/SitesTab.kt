@@ -6,55 +6,80 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
+import com.example.myinventory.data.models.Site
+import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
 import com.example.myinventory.ui.settings.EditItemDialog
-import com.example.myinventory.ui.settings.ItemAddField
 import com.example.myinventory.ui.settings.SettingsViewModel
-import com.example.myinventory.ui.settings.SimpleItemList
 
 @Composable
 fun SitesTab(viewModel: SettingsViewModel) {
-    val types by viewModel.sites.collectAsState()
-    var editIndex by remember { mutableStateOf<Int?>(null) }
-    var deleteIndex by remember { mutableStateOf<Int?>(null) }
+    val allSites by viewModel.sites.collectAsState()
+
+    var text by remember { mutableStateOf("") }
+
+    val filteredSites = allSites.filter { site ->
+        text.let {site.name.contains(it, true)}
+    }.sortedBy { it.name }
+
+    var editing by remember { mutableStateOf<Site?>(null) }
+    var deleting by remember { mutableStateOf<Site?>(null) }
 
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)) {
-        ItemAddField(label = stringResource(R.string.new_site)) { name -> viewModel.addSite(name) }
+
+        AddItemField(
+            stringResource(R.string.new_site),
+            onAdd = { viewModel.addSite(it); text = "" },
+            onValueChange = {text = it}
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SimpleItemList(
-            items = types.sortedBy { it.name }.map { it.name },
-            onEditClick = { index -> editIndex = index },
-            onDeleteClick = { index -> deleteIndex = index }
+        ItemList(
+            Modifier,
+            filteredSites,
+            getTitle = { it.name },
+            onEdit = { item -> editing = item },
+            onDelete = { item -> deleting = item },
+            emptyMessage = getEmptyMessage(allSites, filteredSites)
         )
     }
 
-    // Диалог редактирования
-    editIndex?.let { index ->
-        val item = types.sortedBy { it.name }[index]
+    editing?.let {
         EditItemDialog(
-            currentName = item.name,
-            onDismiss = { editIndex = null },
+            currentName = it.name,
+            onDismiss = { editing = null },
             onConfirm = { newName ->
-                viewModel.updateSite(item.copy(name = newName))
-                editIndex = null
+                viewModel.updateSite(it.copy(name = newName))
+                editing = null
             }
         )
     }
 
-    // Диалог удаления
-    deleteIndex?.let { index ->
-        val item = types.sortedBy { it.name }[index]
+    deleting?.let {
         ConfirmDeleteDialog(
-            itemName = item.name,
-            onDismiss = { deleteIndex = null },
+            itemName = it.name,
+            onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteSite(item)
-                deleteIndex = null
+                viewModel.deleteSite(it)
+                deleting = null
             }
         )
     }
 }
+
+@Composable
+fun getEmptyMessage(all: List<Site>, filtered: List<Site>) : String
+{
+    if (all.isEmpty()){
+        return stringResource(R.string.add_first_site)
+    }
+    if (filtered.isEmpty()){
+        return stringResource(R.string.nothing_was_found)
+    }
+    return ""
+}
+

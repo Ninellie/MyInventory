@@ -6,72 +6,77 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
+import com.example.myinventory.data.models.Vendor
+import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
 import com.example.myinventory.ui.settings.EditItemDialog
-import com.example.myinventory.ui.settings.ItemAddField
 import com.example.myinventory.ui.settings.SettingsViewModel
-import com.example.myinventory.ui.settings.SimpleItemList
 
 @Composable
 fun VendorsTab(viewModel: SettingsViewModel) {
-    val types by viewModel.vendors.collectAsState()
+    val allVendors by viewModel.vendors.collectAsState()
 
-    var editIndex by remember { mutableStateOf<Int?>(null) }
-    var deleteIndex by remember { mutableStateOf<Int?>(null) }
+    var text by remember { mutableStateOf("") }
+
+    val filteredVendors = allVendors.filter { vendor ->
+        text.let {vendor.name.contains(it, true)}
+    }.sortedBy { it.name }
+
+    var editing by remember { mutableStateOf<Vendor?>(null) }
+    var deleting by remember { mutableStateOf<Vendor?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-
-        ItemAddField(label = stringResource(R.string.new_vendor)) { name ->
-            viewModel.addVendor(name)
-        }
+        AddItemField(
+            stringResource(R.string.new_vendor),
+            onAdd = { viewModel.addVendor(it); text = "" },
+            onValueChange = {text = it}
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        VendorsList(
-            viewModel,
-            onEditClick = { index -> editIndex = index },
-            onDeleteClick = { index -> deleteIndex = index })
+        ItemList(
+            Modifier,
+            filteredVendors,
+            getTitle = { it.name },
+            onEdit = { item -> editing = item },
+            onDelete = { item -> deleting = item },
+            emptyMessage = getEmptyMessage(allVendors, filteredVendors)
+        )
     }
 
-    // Диалог редактирования
-    editIndex?.let { index ->
-        val item = types.sortedBy { it.name }[index]
+    editing?.let {
         EditItemDialog(
-            currentName = item.name,
-            onDismiss = { editIndex = null },
+            currentName = it.name,
+            onDismiss = { editing = null },
             onConfirm = { newName ->
-                viewModel.updateVendor(item.copy(name = newName))
-                editIndex = null
+                viewModel.updateVendor(it.copy(name = newName))
+                editing = null
             }
         )
     }
 
-    // Диалог удаления
-    deleteIndex?.let { index ->
-        val item = types.sortedBy { it.name }[index]
+    deleting?.let {
         ConfirmDeleteDialog(
-            itemName = item.name,
-            onDismiss = { deleteIndex = null },
+            itemName = it.name,
+            onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteVendor(item)
-                deleteIndex = null
+                viewModel.deleteVendor(it)
+                deleting = null
             }
         )
     }
 }
-
 
 @Composable
-fun VendorsList(
-    viewModel: SettingsViewModel,
-    onEditClick: (Int) -> Unit,
-    onDeleteClick: (Int) -> Unit)
+fun getEmptyMessage(allVendors: List<Vendor>, filteredVendors: List<Vendor>) : String
 {
-    val types by viewModel.vendors.collectAsState()
-
-    SimpleItemList(
-        items = types.sortedBy { it.name }.map { it.name },
-        onEditClick = onEditClick,
-        onDeleteClick = onDeleteClick
-    )
+    if (allVendors.isEmpty()){
+        return stringResource(R.string.add_first_vendor)
+    }
+    if (filteredVendors.isEmpty()){
+        return stringResource(R.string.nothing_was_found)
+    }
+    return ""
 }
+

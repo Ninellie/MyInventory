@@ -8,50 +8,50 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
 import com.example.myinventory.data.models.FieldType
+import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ClearFiltersButton
+import com.example.myinventory.ui.components.DropdownSelector
+import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
-import com.example.myinventory.ui.settings.DropdownSelector
-import com.example.myinventory.ui.settings.EntityListSectionWithFilter
-import com.example.myinventory.ui.settings.ItemAddField
-import com.example.myinventory.ui.settings.ClearFiltersButton
 import com.example.myinventory.ui.settings.SettingsViewModel
 
 @Composable
 fun FieldTypesTab(viewModel: SettingsViewModel) {
     val fieldTypes by viewModel.fieldTypes.collectAsState()
-    var selectedValueType by remember { mutableStateOf<String?>(null) }
 
-    val filtered = fieldTypes.filter {
-        selectedValueType == "" || selectedValueType == null || it.valueType == selectedValueType!!
-    }
+    var selectedValueTypeKey by remember { mutableStateOf<String?>(null) }
+    var text by remember { mutableStateOf("") }
+
+    val filtered = fieldTypes.filter { fieldType ->
+        val matchName = fieldType.name.contains(text, ignoreCase = true)
+        val matchType = selectedValueTypeKey?.let { it == fieldType.valueType } ?: true
+
+        matchName && matchType
+    }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<FieldType?>(null) }
     var deleting by remember { mutableStateOf<FieldType?>(null) }
 
-    val valueTypes = listOf(
-        stringResource(R.string.field_type_text),
-        stringResource(R.string.field_type_multiline_text),
-        stringResource(R.string.field_type_coordinates),
-        stringResource(R.string.field_type_url),
-        stringResource(R.string.field_type_phone),
-        stringResource(R.string.field_type_integer),
-        stringResource(R.string.field_type_float),
+    val valueTypeKeys: Map<String, String> = mapOf(
+        stringResource(R.string.field_type_text_key) to stringResource(R.string.field_type_text),
+        stringResource(R.string.field_type_phone_key) to stringResource(R.string.field_type_phone),
+        stringResource(R.string.field_type_url_key) to stringResource(R.string.field_type_url),
+        stringResource(R.string.field_type_number_key) to stringResource(R.string.field_type_number),
     )
-
 
     Column(Modifier.padding(16.dp)) {
         DropdownSelector(
             label = stringResource(R.string.field_type),
-            items = valueTypes,
-            selectedItem = selectedValueType,
-            onItemSelected = { selectedValueType = it },
-            itemToString = { it }
-        )
+            items = valueTypeKeys.keys.toList(),
+            selectedItem = selectedValueTypeKey,
+            onItemSelected = { selectedValueTypeKey = it },
+            itemToString = { valueTypeKeys[it]!! } )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (selectedValueType != null) {
+        if (selectedValueTypeKey != null) {
             ClearFiltersButton(
-                onReset = { selectedValueType = null }
+                onReset = { selectedValueTypeKey = null }
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -59,18 +59,20 @@ fun FieldTypesTab(viewModel: SettingsViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (selectedValueType != null) {
-            ItemAddField(label = stringResource(R.string.new_field_type),) {
-                viewModel.addFieldType(it, selectedValueType!!)
-            }
+        if (selectedValueTypeKey != null) {
+            AddItemField(
+                label = stringResource(R.string.new_field_type),
+                onAdd = { viewModel.addFieldType(it, selectedValueTypeKey!!) },
+                onValueChange = { text = it },
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        EntityListSectionWithFilter(
-            items = filtered.sortedBy { it.name },
+        ItemList(
+            items = filtered,
             getTitle = { it.name },
-            getSubtitle = { it.valueType },
+            getSubtitle = { valueTypeKeys.getOrElse(it.valueType) { it.valueType } },
             onEdit = { editing = it },
             onDelete = { deleting = it }
         )
@@ -97,10 +99,10 @@ fun FieldTypesTab(viewModel: SettingsViewModel) {
                     
                     DropdownSelector(
                         label = stringResource(R.string.field_type_select),
-                        items = valueTypes.filter { it.isNotEmpty() },
-                        selectedItem = editValueType,
-                        onItemSelected = { editValueType = it },
-                        itemToString = { it }
+                        items = valueTypeKeys.keys.toList(), // keys
+                        selectedItem = editValueType, //key
+                        onItemSelected = { editValueType = it }, // key
+                        itemToString = { valueTypeKeys.getOrElse(it) { it } } // value (showing)
                     )
                 }
             },

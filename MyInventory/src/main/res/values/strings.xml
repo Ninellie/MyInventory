@@ -61,13 +61,10 @@
 
     <!-- Field Types -->
     <string name="field_type_text">Text</string>
-    <string name="field_type_coordinates">Coordinates</string>
-    <string name="field_type_url">Web URL</string>
-    <string name="field_type_phone">Phone number</string>
+    <string name="field_type_url">URL</string>
+    <string name="field_type_phone">Phone</string>
     <string name="field_type_email">Email</string>
-    <string name="field_type_integer">Integer</string>
-    <string name="field_type_float">Float</string>
-    <string name="field_type_select">Select type</string>
+    <string name="field_type_select">Select</string>
     <string name="device">Device</string>
 
     <string name="rack">Rack</string>
@@ -76,11 +73,20 @@
     <string name="filters">Filters</string>
     <string name="add_device">Add device</string>
     <string name="back">Back</string>
-    <string name="field_type_multiline_text">Multiline text</string>
-    <string name="selected">selected</string>
 
     <string name="grouping">Grouping</string>
     <string name="group_by_device_type">By device type</string>
     <string name="clear_filters">Clear filters</string>
     <string name="select_item">Select item</string>
+    <string name="add_first_vendor">Add first vendor</string>
+    <string name="nothing_was_found">Nothing was found</string>
+    <string name="add_first_site">Add first site</string>
+    <string name="add_first_location">Add first location</string>
+    <string name="add_first_rack">Add first rack</string>
+    <string name="field_type_number">Number</string>
+    <string name="field_type_text_key" translatable="false">text</string>
+    <string name="field_type_url_key" translatable="false">url</string>
+    <string name="field_type_phone_key" translatable="false">phone</string>
+    <string name="field_type_number_key" translatable="false">number</string>
+    <string name="selected_item">Selected</string>
 </resources>

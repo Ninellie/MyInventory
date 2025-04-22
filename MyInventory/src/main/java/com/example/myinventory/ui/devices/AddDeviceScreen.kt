@@ -3,7 +3,6 @@ package com.example.myinventory.ui.devices
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,7 +13,7 @@ import com.example.myinventory.data.models.Device
 import com.example.myinventory.data.models.DeviceModel
 import com.example.myinventory.data.models.Location
 import com.example.myinventory.data.models.Rack
-import com.example.myinventory.ui.settings.DropdownSelector
+import com.example.myinventory.ui.components.DropdownSelector
 import com.example.myinventory.ui.settings.SettingsViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

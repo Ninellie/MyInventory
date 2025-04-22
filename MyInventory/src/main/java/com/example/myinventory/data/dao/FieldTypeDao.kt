@@ -7,7 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.myinventory.data.models.FieldType
-import com.example.myinventory.data.models.Location
 import kotlinx.coroutines.flow.Flow
 
 @Dao

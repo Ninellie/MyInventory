@@ -14,13 +14,10 @@
     <string name="delete_quastion">Удалить?</string>
     <string name="are_you_sure">Вы уверены? Удалить</string>
     <string name="field_type_text">Текст</string>
-    <string name="field_type_coordinates">Координаты</string>
-    <string name="field_type_url">Ссылка</string>
-    <string name="field_type_phone">Номер телефона</string>
+    <string name="field_type_url">URL</string>
+    <string name="field_type_phone">Телефон</string>
     <string name="field_type_email">Email</string>
-    <string name="field_type_integer">Целое число</string>
-    <string name="field_type_float">Дробное число</string>
-    <string name="field_type_select">Выберите тип</string>
+    <string name="field_type_select">Выпадающий список</string>
     <string name="location">Локация</string>
     <string name="models">Модели</string>
     <string name="vendor">Производитель</string>
@@ -52,7 +49,12 @@
     <string name="search_by_name">Наименование</string>
     <string name="filters">Фильтры</string>
     <string name="add_device">Добавить девайс</string>
-    <string name="back">Back</string>
-    <string name="field_type_multiline_text">Multiline text</string>
-    <string name="selected">selected</string>
+    <string name="back">Назад</string>
+    <string name="add_first_vendor">Добавить первого производителя</string>
+    <string name="nothing_was_found">Ничего не найдено</string>
+    <string name="add_first_site">Добавьте первое место</string>
+    <string name="add_first_location">Добавьте первую локацию</string>
+    <string name="add_first_rack">Добавьте первую стойку</string>
+    <string name="field_type_number">Число</string>
+    <string name="selected_item">Выбранный</string>
 </resources>

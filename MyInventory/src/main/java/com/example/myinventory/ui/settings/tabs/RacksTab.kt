@@ -1,8 +1,6 @@
 package com.example.myinventory.ui.settings.tabs
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -11,28 +9,35 @@ import com.example.myinventory.R
 import com.example.myinventory.data.models.Location
 import com.example.myinventory.data.models.Site
 import com.example.myinventory.data.models.Rack
+import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ClearFiltersButton
+import com.example.myinventory.ui.components.DropdownSelector
+import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
-import com.example.myinventory.ui.settings.DropdownSelector
 import com.example.myinventory.ui.settings.EditItemDialog
-import com.example.myinventory.ui.settings.EntityCard
-import com.example.myinventory.ui.settings.ItemAddField
-import com.example.myinventory.ui.settings.ClearFiltersButton
 import com.example.myinventory.ui.settings.SettingsViewModel
 
 @Composable
 fun RacksTab(viewModel: SettingsViewModel) {
     val allSites by viewModel.sites.collectAsState()
+    allSites.sortedBy { it.name }
     val allLocations by viewModel.locations.collectAsState()
+    allLocations.sortedBy { it.name }
     val allRacks by viewModel.racks.collectAsState()
+
+    var text by remember { mutableStateOf("") }
 
     var selectedSite by remember { mutableStateOf<Site?>(null) }
     var selectedLocation by remember { mutableStateOf<Location?>(null) }
 
     val filteredRacks = allRacks.filter { rack ->
-        val matchLocation = selectedLocation?.id?.let { it == rack.locationId } ?: true
         val location = allLocations.find { it.id == rack.locationId }
+
+        val matchName = rack.name.contains(text, ignoreCase = true)
+        val matchLocation = selectedLocation?.id?.let { it == rack.locationId } ?: true
         val matchSite = selectedSite?.id?.let { it == location?.siteId } ?: true
-        matchLocation && matchSite
+
+        matchLocation && matchSite && matchName
     }.sortedBy { it.name }
 
     val filteredLocations = remember(selectedSite, allLocations) {
@@ -41,130 +46,103 @@ fun RacksTab(viewModel: SettingsViewModel) {
         } else emptyList()
     }
 
-    RacksTabContent(
-        allSites = allSites,
-        allLocations = allLocations,
-
-        selectedSite = selectedSite,
-        selectedLocation = selectedLocation,
-
-        onSiteSelected = { selectedSite = it; selectedLocation = null},
-        onLocationSelected = { selectedLocation = it },
-
-        filteredLocations = filteredLocations,
-        filteredRacks = filteredRacks,
-
-        onAdd = { name -> viewModel.addRack(name, selectedLocation!!.id) },
-        onEdit = { rack, newName -> viewModel.updateRack(rack.copy(name = newName)) },
-        onDelete = { viewModel.deleteRack(it) }
-    )
-}
-
-@Composable
-fun RacksTabContent(
-    allSites: List<Site>,
-    allLocations : List<Location>,
-
-    selectedSite: Site?,
-    selectedLocation: Location?,
-
-    onSiteSelected: (Site?) -> Unit,
-    onLocationSelected: (Location?) -> Unit,
-
-    filteredLocations: List<Location>,
-    filteredRacks: List<Rack>,
-
-    onAdd: (String) -> Unit,
-    onEdit: (Rack, String) -> Unit,
-    onDelete: (Rack) -> Unit
-){
     var editing by remember { mutableStateOf<Rack?>(null) }
     var deleting by remember { mutableStateOf<Rack?>(null) }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    var resetToken by remember { mutableIntStateOf(0) }
 
-        // 🔹 Site filter
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
+        // Site filter
         DropdownSelector(
             label = stringResource(R.string.site),
             items = allSites,
             selectedItem = selectedSite,
-            onItemSelected = { onSiteSelected(it) },
+            onItemSelected = { selectedLocation = null; selectedSite = it },
             itemToString = { it.name }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 🔹 Location filter (only if site selected)
+        // Location filter (only if site selected)
         if (selectedSite != null) {
             DropdownSelector(
                 label = stringResource(R.string.location),
                 items = filteredLocations,
                 selectedItem = selectedLocation,
-                onItemSelected = { onLocationSelected(it) },
+                onItemSelected = { selectedLocation = it },
                 itemToString = { it.name }
             )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 🔹 Reset filters button
+        // Reset filters button
         if (selectedSite != null || selectedLocation != null) {
             ClearFiltersButton(
-                onReset = { 
-                    onSiteSelected(null)
-                    onLocationSelected(null)
-                }
+                onReset = { selectedSite = null; selectedLocation = null; resetToken++ }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔹 Add rack (only if location selected)
+        // Add rack (only if location selected)
         if (selectedLocation != null) {
-            ItemAddField(label = stringResource(R.string.new_rack)) { name -> onAdd(name) }
+
+            AddItemField(
+                label = stringResource(R.string.new_rack),
+                onAdd = { name -> viewModel.addRack(name, selectedLocation!!.id) },
+                onValueChange = {text = it}
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // 🔹 Rack list
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(filteredRacks.sortedBy { it.name }) { rack ->
-                val loc = allLocations.find { it.id == rack.locationId }
-                val site = loc?.let { allSites.find { s -> s.id == it.siteId } }
-                val subtitle = listOfNotNull(loc?.name, site?.name).joinToString(", ")
-
-                EntityCard (
-                    title = rack.name,
-                    subtitle = subtitle,
-                    onEdit = { editing = rack },
-                    onDelete = { deleting = rack }
-                )
-            }
-        }
+        // Rack list
+        ItemList(
+            items = filteredRacks,
+            getTitle = { it.name },
+            getSubtitle = { getRackSubtitle(locations = allLocations, sites = allSites, it) },
+            onEdit = { editing = it },
+            onDelete = { deleting = it },
+            emptyMessage = getEmptyMessage(allRacks, filteredRacks)
+        )
     }
 
-    // 🔹 Edit dialog
     editing?.let {
         EditItemDialog(
             currentName = it.name,
             onDismiss = { editing = null },
-            onConfirm = { newName ->
-                onEdit(it, newName)
-                editing = null
-            }
+            onConfirm = { newName -> viewModel.updateRack(it.copy(name = newName)); editing = null }
         )
     }
 
-    // 🔹 Delete dialog
     deleting?.let {
         ConfirmDeleteDialog(
             itemName = it.name,
             onDismiss = { deleting = null },
-            onConfirm = {
-                onDelete(it)
-                deleting = null
-            }
+            onConfirm = { viewModel.deleteRack(it); deleting = null }
         )
     }
+
+}
+
+private fun getRackSubtitle(locations: List<Location>, sites: List<Site>, rack: Rack): String {
+    val location = locations.find { it.id == rack.locationId }
+    val site = location?.let { sites.find { s -> s.id == it.siteId } }
+    val subtitle = listOfNotNull(location?.name, site?.name).joinToString(", ")
+    return subtitle
+}
+
+
+@Composable
+private fun getEmptyMessage(all: List<Rack>, filtered: List<Rack>) : String
+{
+    if (all.isEmpty()){
+        return stringResource(R.string.add_first_rack)
+    }
+    if (filtered.isEmpty()){
+        return stringResource(R.string.nothing_was_found)
+    }
+    return ""
 }

@@ -10,6 +10,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
 import com.example.myinventory.data.models.*
+import com.example.myinventory.ui.components.ClearFiltersButton
+import com.example.myinventory.ui.components.DropdownSelector
+import com.example.myinventory.ui.components.ItemList
+import com.example.myinventory.ui.components.MultiSelectDropdown
 import com.example.myinventory.ui.settings.*
 import com.example.myinventory.ui.settings.SettingsViewModel
 
@@ -132,7 +136,9 @@ fun DevicesScreen(
                 
                 // Фильтр по Location (только если выбран Site)
                 if (selectedSite != null) {
-                    val locationsInSite = locations.filter { it.siteId == selectedSite!!.id }
+                    val locationsInSite = locations
+                        .filter { it.siteId == selectedSite!!.id }
+                        .sortedBy { it.name }
                     DropdownSelector(
                         label = stringResource(R.string.location),
                         items = locationsInSite,
@@ -217,7 +223,8 @@ fun DevicesScreen(
                 // Группировка по типу устройства
                 val groupedDevices = filtered.groupBy { device ->
                     val model = deviceModels.find { it.id == device.modelId }
-                    val deviceType = model?.let { deviceTypes.find { type -> type.id == it.deviceTypeId } }
+                    val deviceType = model?.let {
+                        deviceTypes.find { type -> type.id == it.deviceTypeId } }
                     deviceType?.name ?: "Unknown"
                 }.toSortedMap()
                 
@@ -227,25 +234,27 @@ fun DevicesScreen(
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-                    
-                    EntityListSectionWithFilter(
+
+                    ItemList(
                         items = devicesInGroup.sortedBy { it.name },
                         getTitle = { it.name },
                         getSubtitle = { modelNameFor(it.modelId, deviceModels) },
                         onEdit = { editing = it },
-                        onDelete = { deleting = it }
+                        onDelete = { deleting = it },
+                        emptyMessage = "Empty"
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             } else {
                 // Обычный список без группировки
-                EntityListSectionWithFilter(
+                ItemList(
                     items = filtered.sortedBy { it.name },
                     getTitle = { it.name },
                     getSubtitle = { modelNameFor(it.modelId, deviceModels) },
                     onEdit = { editing = it },
-                    onDelete = { deleting = it }
+                    onDelete = { deleting = it },
+                    emptyMessage = "Empty"
                 )
             }
         }

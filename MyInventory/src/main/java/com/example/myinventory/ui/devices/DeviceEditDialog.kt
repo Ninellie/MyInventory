@@ -1,4 +1,4 @@
-package com.example.myinventory.ui.settings
+package com.example.myinventory.ui.devices
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +16,7 @@ import com.example.myinventory.data.models.Field
 import com.example.myinventory.data.models.FieldType
 import com.example.myinventory.data.models.Location
 import com.example.myinventory.data.models.Rack
+import com.example.myinventory.ui.components.DropdownSelector
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -106,10 +107,7 @@ fun DeviceEditDialog(
                     selectedItem = selectedLocation,
                     onItemSelected = { 
                         selectedLocation = it
-                        // Сбрасываем выбранную стойку, если локация изменилась
-                        if (it?.id != selectedLocation?.id) {
-                            selectedRack = null
-                        }
+                        selectedRack = null
                     },
                     itemToString = { it.name }
                 )

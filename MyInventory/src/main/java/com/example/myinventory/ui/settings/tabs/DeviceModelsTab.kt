@@ -1,8 +1,24 @@
 package com.example.myinventory.ui.settings.tabs
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.example.myinventory.R
+import com.example.myinventory.data.models.DeviceModel
 import com.example.myinventory.data.models.DeviceType
 import com.example.myinventory.data.models.Vendor
+import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ClearFiltersButton
+import com.example.myinventory.ui.components.DropdownSelector
+import com.example.myinventory.ui.components.ItemList
+import com.example.myinventory.ui.settings.ConfirmDeleteDialog
+import com.example.myinventory.ui.settings.EditItemDialog
+import com.example.myinventory.ui.settings.FilterRow
 import com.example.myinventory.ui.settings.SettingsViewModel
 
 @Composable
@@ -13,23 +29,99 @@ fun DeviceModelsTab(viewModel: SettingsViewModel) {
 
     var selectedVendor by remember { mutableStateOf<Vendor?>(null) }
     var selectedType by remember { mutableStateOf<DeviceType?>(null) }
+    var modelName by remember { mutableStateOf("") }
 
     val filtered = allModels.filter { model ->
         val matchVendor = selectedVendor?.id?.let { it == model.vendorId } ?: true
         val matchType = selectedType?.id?.let { it == model.deviceTypeId } ?: true
-        matchVendor && matchType
+        val matchName = model.name.contains(modelName)
+        matchVendor && matchType && matchName
     }.sortedBy { it.name }
 
-    DeviceModelsTabContent(
-        models = filtered,
-        vendors = allVendors,
-        types = allTypes,
-        selectedVendor = selectedVendor,
-        onVendorSelected = { selectedVendor = it },
-        selectedType = selectedType,
-        onTypeSelected = { selectedType = it },
-        onAdd = { name -> viewModel.addDeviceModel(name, selectedVendor!!.id, selectedType!!.id) },
-        onEdit = { model, newName -> viewModel.updateDeviceModel(model.copy(name = newName)) },
-        onDelete = { viewModel.deleteDeviceModel(it) }
-    )
+    var editing by remember { mutableStateOf<DeviceModel?>(null) }
+    var deleting by remember { mutableStateOf<DeviceModel?>(null) }
+
+    val isAddEnable = selectedVendor != null || selectedType != null || modelName != ""
+
+    Column(Modifier.padding(16.dp)) {
+        FilterRow {
+            DropdownSelector(
+                label = stringResource(R.string.vendor),
+                items = allVendors.sortedBy { it.name },
+                selectedItem = selectedVendor,
+                onItemSelected = { selectedVendor = it },
+                itemToString = { it.name },
+                modifier = Modifier.weight(1f)
+            )
+            DropdownSelector(
+                label = stringResource(R.string.device_type),
+                items = allTypes.sortedBy { it.name },
+                selectedItem = selectedType,
+                onItemSelected = { selectedType = it },
+                itemToString = { it.name },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (isAddEnable) {
+            ClearFiltersButton(
+                onReset = {
+                    selectedVendor = null
+                    selectedType = null
+                    modelName = ""
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AddItemField(
+            label = stringResource(R.string.new_model),
+            onAdd = { name ->
+                viewModel.addDeviceModel(name, selectedVendor!!.id, selectedType!!.id) },
+            onValueChange = {modelName = it},
+            isAddEnabled = isAddEnable
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ItemList(
+            items = filtered,
+            getTitle = { it.name },
+            getSubtitle = {model ->
+                val vendor = allVendors.find { it.id == model.vendorId }
+                val type = allTypes.find { it.id == model.deviceTypeId }
+                listOfNotNull(vendor?.name, type?.name).joinToString(", ")
+            },
+            onEdit = { editing = it },
+            onDelete = { deleting = it },
+            emptyMessage = "Empty"
+        )
+    }
+
+    editing?.let {
+        EditItemDialog(
+            currentName = it.name,
+            onDismiss = { editing = null },
+            onConfirm = { newName ->
+                viewModel.updateDeviceModel(it.copy(name = newName))
+                editing = null
+            }
+        )
+    }
+
+    deleting?.let {
+        ConfirmDeleteDialog(
+            itemName = it.name,
+            onDismiss = { deleting = null },
+            onConfirm = {
+                viewModel.deleteDeviceModel(it)
+                deleting = null
+            }
+        )
+    }
 }

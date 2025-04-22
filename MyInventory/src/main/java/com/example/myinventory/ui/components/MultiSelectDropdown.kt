@@ -1,4 +1,4 @@
-package com.example.myinventory.ui.settings
+package com.example.myinventory.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -24,13 +24,13 @@ fun <T> MultiSelectDropdown(
     ) {
         OutlinedTextField(
             value = if (selectedItems.isEmpty()) "" else "${selectedItems.size} ".plus(
-                stringResource(R.string.selected)
+                stringResource(R.string.selected_item)
             ),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.fillMaxWidth().menuAnchor()
+            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true)
         )
         
         ExposedDropdownMenu(

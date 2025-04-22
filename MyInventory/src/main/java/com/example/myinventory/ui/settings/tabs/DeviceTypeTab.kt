@@ -9,21 +9,31 @@ import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
 import com.example.myinventory.data.models.DeviceType
 import com.example.myinventory.data.models.FieldType
+import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
-import com.example.myinventory.ui.settings.EntityListSectionWithFilter
-import com.example.myinventory.ui.settings.ItemAddField
-import com.example.myinventory.ui.settings.MultiSelectDropdown
+import com.example.myinventory.ui.components.MultiSelectDropdown
 import com.example.myinventory.ui.settings.SettingsViewModel
 
 @Composable
 fun DeviceTypeTab(viewModel: SettingsViewModel) {
-    val types by viewModel.deviceTypes.collectAsState()
+    val deviceTypes by viewModel.deviceTypes.collectAsState()
     val fieldTypes by viewModel.fieldTypes.collectAsState()
 
     var selectedFieldTypes by remember { mutableStateOf<List<FieldType>>(emptyList()) }
     
     var editing by remember { mutableStateOf<DeviceType?>(null) }
     var deleting by remember { mutableStateOf<DeviceType?>(null) }
+
+    var deviceName by remember { mutableStateOf("") }
+
+    val selectedFieldTypeIdList = selectedFieldTypes.map { it.id }
+
+    val filteredDeviceTypeList = deviceTypes.filter { deviceType ->
+        val matchName = deviceType.name.contains(deviceName, ignoreCase = true)
+        val matchType = deviceType.fieldTypeIdList.any { it in selectedFieldTypeIdList }
+        matchName && (matchType || selectedFieldTypes.isEmpty())
+    }.sortedBy { it.name }
 
     Column(Modifier.padding(16.dp)) {
 
@@ -38,28 +48,33 @@ fun DeviceTypeTab(viewModel: SettingsViewModel) {
         
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Поле ввода имени
-        ItemAddField(label = stringResource(R.string.new_device_type)) { name ->
-            if (name.isNotBlank() && selectedFieldTypes.isNotEmpty()) {
-                viewModel.addDeviceType(name, selectedFieldTypes.map { it.id })
-                selectedFieldTypes = emptyList()
-            }
-        }
+        AddItemField(
+            label =  stringResource(R.string.new_device_type),
+            onAdd = { name ->
+                if (name.isNotBlank() && selectedFieldTypes.isNotEmpty()) {
+                    viewModel.addDeviceType(name, selectedFieldTypes.map { it.id })
+                    selectedFieldTypes = emptyList()
+                }
+            },
+            onValueChange = {deviceName = it},
+        )
         
         Spacer(modifier = Modifier.height(16.dp))
         
         // Список типов устройств
-        EntityListSectionWithFilter(
-            items = types.sortedBy { it.name },
+        ItemList(
+            items = filteredDeviceTypeList.sortedBy { it.name },
             getTitle = { it.name },
             getSubtitle = { 
                 val fieldTypeNames = it.fieldTypeIdList
                     .mapNotNull { id -> fieldTypes.find { ft -> ft.id == id }?.name }
+                    .sortedBy { it }
                     .joinToString(", ")
                 fieldTypeNames.ifBlank { "" }
             },
             onEdit = { editing = it },
-            onDelete = { deleting = it }
+            onDelete = { deleting = it },
+            emptyMessage = "Create first device type"
         )
     }
     
@@ -70,6 +85,7 @@ fun DeviceTypeTab(viewModel: SettingsViewModel) {
             mutableStateOf(
                 deviceType.fieldTypeIdList
                     .mapNotNull { id -> fieldTypes.find { it.id == id } }
+                    .sortedBy { it.name }
             ) 
         }
         
