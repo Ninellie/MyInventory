@@ -14,6 +14,8 @@ import com.example.myinventory.data.models.Site
 import com.example.myinventory.data.models.Vendor
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import com.example.myinventory.ui.graphView.GraphNode
+import com.example.myinventory.ui.graphView.NodeType
 
 class SettingsViewModel(
     private val db: AppDatabase
@@ -241,4 +243,97 @@ class SettingsViewModel(
     fun getFieldsByDevice(deviceId: Int): Flow<List<Field>> {
         return db.fieldDao().getByDevice(deviceId)
     }
+
+
+
+
+
+
+
+    fun buildDeviceInventoryGraph(): GraphNode {
+        val siteMap = sites.value.associateBy { it.id }
+        val locationMap = locations.value.groupBy { it.siteId }
+        val rackMap = racks.value.groupBy { it.locationId }
+        val modelMap = deviceModels.value.associateBy { it.id }
+        val deviceMap = devices.value.groupBy { it.modelId }
+
+        fun buildDeviceNodes(modelId: Int): List<GraphNode> {
+            return deviceMap[modelId].orEmpty().map { device ->
+                GraphNode(
+                    id = "device_${device.id}",
+                    name = device.name,
+                    type = NodeType.DEVICE
+                )
+            }
+        }
+
+        fun buildModelNodes(rackId: Int?, locationId: Int): List<GraphNode> {
+            val filteredDevices = devices.value.filter {
+                it.rackId == rackId && it.locationId == locationId
+            }
+
+            val groupedByModel = filteredDevices.groupBy { it.modelId }
+
+            return groupedByModel.mapNotNull { (modelId, deviceList) ->
+                val model = modelMap[modelId] ?: return@mapNotNull null
+                GraphNode(
+                    id = "model_${model.id}",
+                    name = model.name,
+                    type = NodeType.MODEL,
+                    children = deviceList.map { device ->
+                        GraphNode(
+                            id = "device_${device.id}",
+                            name = device.name,
+                            type = NodeType.DEVICE
+                        )
+                    }
+                )
+            }
+        }
+
+        fun buildRackNodes(locationId: Int): List<GraphNode> {
+            return rackMap[locationId].orEmpty().map { rack ->
+                GraphNode(
+                    id = "rack_${rack.id}",
+                    name = rack.name,
+                    type = NodeType.RACK,
+                    children = buildModelNodes(rack.id, locationId)
+                )
+            }
+        }
+
+        fun buildLocationNodes(siteId: Int): List<GraphNode> {
+            return locationMap[siteId].orEmpty().map { location ->
+                val rackChildren = buildRackNodes(location.id)
+                val modelNodesDirectlyInLocation = buildModelNodes(null, location.id)
+
+                GraphNode(
+                    id = "location_${location.id}",
+                    name = location.name,
+                    type = NodeType.LOCATION,
+                    children = rackChildren + modelNodesDirectlyInLocation
+                )
+            }
+        }
+
+        // Создаём один корневой узел (например, "Все объекты")
+        return GraphNode(
+            id = "root",
+            name = "Инвентаризация",
+            type = NodeType.PLACE,
+            children = sites.value.map { site ->
+                GraphNode(
+                    id = "site_${site.id}",
+                    name = site.name,
+                    type = NodeType.PLACE,
+                    children = buildLocationNodes(site.id)
+                )
+            }
+        )
+    }
+
+    val graphRootNode: GraphNode
+        get() = buildDeviceInventoryGraph()
+
 }
+

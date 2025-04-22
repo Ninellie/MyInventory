@@ -42,7 +42,4 @@ data class Device(
 
     val createdAt: String,
     val updatedAt: String
-
-    // Childs
-    // Parents
 )

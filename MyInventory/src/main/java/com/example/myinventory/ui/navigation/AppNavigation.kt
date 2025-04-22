@@ -4,12 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myinventory.ui.devices.AddDeviceScreen
 import com.example.myinventory.ui.devices.DevicesScreen
+import com.example.myinventory.ui.graphView.GraphScreen
 import com.example.myinventory.ui.settings.SettingsScreen
 import com.example.myinventory.ui.settings.SettingsViewModel
 
@@ -47,6 +47,10 @@ fun AppNavigation(viewModel: SettingsViewModel) {
             
             composable(Screen.Settings.route) {
                 SettingsScreen(viewModel)
+            }
+
+            composable(Screen.Graph.route) {
+                GraphScreen(viewModel)
             }
         }
     }

@@ -3,6 +3,7 @@ package com.example.myinventory.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -18,11 +19,12 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
     data object Devices : Screen("devices", Icons.Default.Home, R.string.devices)
     data object AddDevice : Screen("add_device", Icons.Default.Home, R.string.add_device)
     data object Settings : Screen("settings", Icons.Default.Settings, R.string.settings)
+    data object Graph : Screen("graph", Icons.Default.Share, R.string.graph)
 }
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    val items = listOf(Screen.Devices, Screen.Settings)
+    val items = listOf(Screen.Devices, Screen.Settings, Screen.Graph)
     
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
