@@ -10,11 +10,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myinventory.ui.devices.AddDeviceScreen
 import com.example.myinventory.ui.devices.DevicesScreen
 import com.example.myinventory.ui.graphView.GraphScreen
+import com.example.myinventory.ui.graphView.GraphViewModel
 import com.example.myinventory.ui.settings.SettingsScreen
 import com.example.myinventory.ui.settings.SettingsViewModel
 
 @Composable
-fun AppNavigation(viewModel: SettingsViewModel) {
+fun AppNavigation(
+    settings: SettingsViewModel,
+    graph: GraphViewModel
+) {
     val navController = rememberNavController()
     
     Scaffold(
@@ -29,7 +33,7 @@ fun AppNavigation(viewModel: SettingsViewModel) {
         ) {
             composable(Screen.Devices.route) {
                 DevicesScreen(
-                    viewModel = viewModel,
+                    viewModel = settings,
                     onNavigateToAddDevice = {
                         navController.navigate(Screen.AddDevice.route)
                     }
@@ -38,7 +42,7 @@ fun AppNavigation(viewModel: SettingsViewModel) {
             
             composable(Screen.AddDevice.route) {
                 AddDeviceScreen(
-                    viewModel = viewModel,
+                    viewModel = settings,
                     onNavigateBack = {
                         navController.popBackStack()
                     }
@@ -46,11 +50,11 @@ fun AppNavigation(viewModel: SettingsViewModel) {
             }
             
             composable(Screen.Settings.route) {
-                SettingsScreen(viewModel)
+                SettingsScreen(settings)
             }
 
             composable(Screen.Graph.route) {
-                GraphScreen(viewModel)
+                GraphScreen(graph)
             }
         }
     }

@@ -57,5 +57,6 @@
     <string name="add_first_rack">Добавьте первую стойку</string>
     <string name="field_type_number">Число</string>
     <string name="selected_item">Выбранный</string>
-    <string name="graph">Graph</string>
+    <string name="graph">Граф</string>
+    <string name="root">Корень</string>
 </resources>
