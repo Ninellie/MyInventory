@@ -20,10 +20,10 @@ fun FieldTypesTab(viewModel: SettingsViewModel) {
     val fieldTypes by viewModel.fieldTypes.collectAsState()
 
     var selectedValueTypeKey by remember { mutableStateOf<String?>(null) }
-    var text by remember { mutableStateOf("") }
+    val fieldName = remember { mutableStateOf("") }
 
     val filtered = fieldTypes.filter { fieldType ->
-        val matchName = fieldType.name.contains(text, ignoreCase = true)
+        val matchName = fieldType.name.contains(fieldName.value, ignoreCase = true)
         val matchType = selectedValueTypeKey?.let { it == fieldType.valueType } ?: true
 
         matchName && matchType
@@ -45,29 +45,30 @@ fun FieldTypesTab(viewModel: SettingsViewModel) {
             items = valueTypeKeys.keys.toList(),
             selectedItem = selectedValueTypeKey,
             onItemSelected = { selectedValueTypeKey = it },
-            itemToString = { valueTypeKeys[it]!! } )
+            itemToString = { valueTypeKeys[it]!! }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (selectedValueTypeKey != null) {
-            ClearFiltersButton(
-                onReset = { selectedValueTypeKey = null }
-            )
-            
+        AddItemField(
+            label = stringResource(R.string.new_field_type),
+            text = fieldName,
+            onAdd = { viewModel.addFieldType(it, selectedValueTypeKey!!) },
+            onValueChange = { },
+            isAddEnabled = fieldName.value != "" && selectedValueTypeKey != null
+        )
+
+        if (selectedValueTypeKey != null || fieldName.value != "") {
             Spacer(modifier = Modifier.height(8.dp))
+            ClearFiltersButton(
+                onReset = {
+                    selectedValueTypeKey = null
+                    fieldName.value = ""
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        if (selectedValueTypeKey != null) {
-            AddItemField(
-                label = stringResource(R.string.new_field_type),
-                onAdd = { viewModel.addFieldType(it, selectedValueTypeKey!!) },
-                onValueChange = { text = it },
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
 
         ItemList(
             items = filtered,

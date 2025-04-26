@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
 import com.example.myinventory.data.models.Vendor
 import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ClearFiltersButton
 import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
 import com.example.myinventory.ui.settings.EditItemDialog
@@ -17,10 +18,10 @@ import com.example.myinventory.ui.settings.SettingsViewModel
 fun VendorsTab(viewModel: SettingsViewModel) {
     val allVendors by viewModel.vendors.collectAsState()
 
-    var text by remember { mutableStateOf("") }
+    val vendorName = remember { mutableStateOf("") }
 
     val filteredVendors = allVendors.filter { vendor ->
-        text.let {vendor.name.contains(it, true)}
+        vendorName.value.let {vendor.name.contains(it, true)}
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<Vendor?>(null) }
@@ -29,9 +30,18 @@ fun VendorsTab(viewModel: SettingsViewModel) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         AddItemField(
             stringResource(R.string.new_vendor),
-            onAdd = { viewModel.addVendor(it); text = "" },
-            onValueChange = {text = it}
+            text = vendorName,
+            onAdd = { viewModel.addVendor(it); },
+            onValueChange = { }
         )
+
+        // Reset filters button
+        if (vendorName.value != "") {
+            Spacer(modifier = Modifier.height(8.dp))
+            ClearFiltersButton(
+                onReset = { vendorName.value = ""}
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

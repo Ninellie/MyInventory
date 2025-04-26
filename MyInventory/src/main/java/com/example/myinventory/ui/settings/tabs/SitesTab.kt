@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myinventory.R
 import com.example.myinventory.data.models.Site
 import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ClearFiltersButton
 import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
 import com.example.myinventory.ui.settings.EditItemDialog
@@ -17,10 +18,10 @@ import com.example.myinventory.ui.settings.SettingsViewModel
 fun SitesTab(viewModel: SettingsViewModel) {
     val allSites by viewModel.sites.collectAsState()
 
-    var text by remember { mutableStateOf("") }
+    var siteName = remember { mutableStateOf("") }
 
     val filteredSites = allSites.filter { site ->
-        text.let {site.name.contains(it, true)}
+        siteName.value.let {site.name.contains(it, true)}
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<Site?>(null) }
@@ -32,9 +33,17 @@ fun SitesTab(viewModel: SettingsViewModel) {
 
         AddItemField(
             stringResource(R.string.new_site),
-            onAdd = { viewModel.addSite(it); text = "" },
-            onValueChange = {text = it}
+            text = siteName,
+            onAdd = { viewModel.addSite(it) },
+            onValueChange = { }
         )
+
+        if (siteName.value != "") {
+            Spacer(modifier = Modifier.height(8.dp))
+            ClearFiltersButton(
+                onReset = { siteName.value = ""}
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

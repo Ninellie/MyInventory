@@ -29,19 +29,20 @@ fun DeviceModelsTab(viewModel: SettingsViewModel) {
 
     var selectedVendor by remember { mutableStateOf<Vendor?>(null) }
     var selectedType by remember { mutableStateOf<DeviceType?>(null) }
-    var modelName by remember { mutableStateOf("") }
+    val modelName = remember { mutableStateOf("") }
 
     val filtered = allModels.filter { model ->
         val matchVendor = selectedVendor?.id?.let { it == model.vendorId } ?: true
         val matchType = selectedType?.id?.let { it == model.deviceTypeId } ?: true
-        val matchName = model.name.contains(modelName)
+        val matchName = model.name.contains(modelName.value, ignoreCase = true)
         matchVendor && matchType && matchName
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<DeviceModel?>(null) }
     var deleting by remember { mutableStateOf<DeviceModel?>(null) }
 
-    val isAddEnable = selectedVendor != null || selectedType != null || modelName != ""
+    val isAddEnable = selectedVendor != null && selectedType != null && modelName.value != ""
+
 
     Column(Modifier.padding(16.dp)) {
         FilterRow {
@@ -65,27 +66,25 @@ fun DeviceModelsTab(viewModel: SettingsViewModel) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (isAddEnable) {
+        AddItemField(
+            label = stringResource(R.string.new_model),
+            text = modelName,
+            onAdd = { name ->
+                viewModel.addDeviceModel(name, selectedVendor!!.id, selectedType!!.id) },
+            onValueChange = { },
+            isAddEnabled = isAddEnable
+        )
+
+        if (selectedVendor != null || selectedType != null || modelName.value != "") {
+            Spacer(modifier = Modifier.height(8.dp))
             ClearFiltersButton(
                 onReset = {
                     selectedVendor = null
                     selectedType = null
-                    modelName = ""
+                    modelName.value = ""
                 }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        AddItemField(
-            label = stringResource(R.string.new_model),
-            onAdd = { name ->
-                viewModel.addDeviceModel(name, selectedVendor!!.id, selectedType!!.id) },
-            onValueChange = {modelName = it},
-            isAddEnabled = isAddEnable
-        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

@@ -13,15 +13,16 @@ import com.example.myinventory.R
 @Composable
 fun AddItemField(
     label: String,
+    text: MutableState<String> = remember { mutableStateOf("") },
     onAdd: (String) -> Unit,
     onValueChange: (String) -> Unit,
     minLength: Int = 2,
     maxLength: Int = 50,
     isAddEnabled: Boolean = true
 ) {
-    var text by remember { mutableStateOf("") }
+    //var text by remember { mutableStateOf("") }
 
-    val isButtonEnabled = ((text.length in (minLength..maxLength)) && isAddEnabled)
+    val isButtonEnabled = ((text.value.length in (minLength..maxLength)) && isAddEnabled)
 
     val focusManager = LocalFocusManager.current
 
@@ -30,8 +31,8 @@ fun AddItemField(
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = text,
-            onValueChange = { onValueChange.invoke(it); text = it },
+            value = text.value,
+            onValueChange = { onValueChange.invoke(it); text.value = it },
             label = { Text(label) },
             modifier = Modifier.weight(1f),
             singleLine = true
@@ -42,8 +43,8 @@ fun AddItemField(
         Button(
             onClick = {
                 if (isButtonEnabled) {
-                    onAdd(text)
-                    text = ""
+                    onAdd(text.value)
+                    text.value = ""
                     focusManager.clearFocus()
                 }
             },

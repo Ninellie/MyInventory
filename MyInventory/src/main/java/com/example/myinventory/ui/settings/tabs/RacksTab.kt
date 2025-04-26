@@ -25,7 +25,7 @@ fun RacksTab(viewModel: SettingsViewModel) {
     allLocations.sortedBy { it.name }
     val allRacks by viewModel.racks.collectAsState()
 
-    var text by remember { mutableStateOf("") }
+    val rackName = remember { mutableStateOf("") }
 
     var selectedSite by remember { mutableStateOf<Site?>(null) }
     var selectedLocation by remember { mutableStateOf<Location?>(null) }
@@ -33,7 +33,7 @@ fun RacksTab(viewModel: SettingsViewModel) {
     val filteredRacks = allRacks.filter { rack ->
         val location = allLocations.find { it.id == rack.locationId }
 
-        val matchName = rack.name.contains(text, ignoreCase = true)
+        val matchName = rack.name.contains(rackName.value, ignoreCase = true)
         val matchLocation = selectedLocation?.id?.let { it == rack.locationId } ?: true
         val matchSite = selectedSite?.id?.let { it == location?.siteId } ?: true
 
@@ -49,8 +49,6 @@ fun RacksTab(viewModel: SettingsViewModel) {
     var editing by remember { mutableStateOf<Rack?>(null) }
     var deleting by remember { mutableStateOf<Rack?>(null) }
 
-    var resetToken by remember { mutableIntStateOf(0) }
-
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
         // Site filter
@@ -62,10 +60,9 @@ fun RacksTab(viewModel: SettingsViewModel) {
             itemToString = { it.name }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         // Location filter (only if site selected)
         if (selectedSite != null) {
+            Spacer(modifier = Modifier.height(8.dp))
             DropdownSelector(
                 label = stringResource(R.string.location),
                 items = filteredLocations,
@@ -77,26 +74,22 @@ fun RacksTab(viewModel: SettingsViewModel) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Reset filters button
-        if (selectedSite != null || selectedLocation != null) {
+        AddItemField(
+            label = stringResource(R.string.new_rack),
+            text = rackName,
+            onAdd = { name -> viewModel.addRack(name, selectedLocation!!.id) },
+            onValueChange = { },
+            isAddEnabled = selectedSite != null && selectedLocation != null && rackName.value != ""
+        )
+
+        if (selectedSite != null || selectedLocation != null || rackName.value != "") {
+            Spacer(modifier = Modifier.height(8.dp))
             ClearFiltersButton(
-                onReset = { selectedSite = null; selectedLocation = null; resetToken++ }
+                onReset = { selectedSite = null; selectedLocation = null; rackName.value = ""}
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Add rack (only if location selected)
-        if (selectedLocation != null) {
-
-            AddItemField(
-                label = stringResource(R.string.new_rack),
-                onAdd = { name -> viewModel.addRack(name, selectedLocation!!.id) },
-                onValueChange = {text = it}
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
 
         // Rack list
         ItemList(

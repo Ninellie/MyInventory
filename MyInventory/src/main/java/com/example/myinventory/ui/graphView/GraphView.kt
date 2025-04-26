@@ -1,8 +1,15 @@
 package com.example.myinventory.ui.graphView
 
 import android.graphics.Paint
+import android.view.VelocityTracker
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LocalContentColor
@@ -10,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -23,9 +31,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.toOffset
 import com.example.myinventory.R
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Composable
 fun GraphView(
@@ -48,26 +58,19 @@ fun GraphView(
             detectTransformGestures { centroid, pan, zoom, _ ->
                 val prevScale = scale
                 val rawNewScale = prevScale * zoom
-                val newScale = rawNewScale.coerceIn(0.5f, 5f)
+                val newScale = rawNewScale.coerceIn(0.5f, 40f) // сначала ограничиваем
+
+                val effectiveZoom = newScale / prevScale // пересчитываем "реальный" зум
 
                 val scaleChanged = newScale != prevScale
 
-                // Центр между пальцами относительно центра экрана
                 val focusToOffset = centroid - (size.center.toOffset() + offset)
 
-                // Компенсация, только если реально увеличиваем или уменьшаем
-                val zoomCompensation = if (scaleChanged) focusToOffset * (1 - zoom) else Offset.Zero
+                val zoomCompensation = if (scaleChanged) focusToOffset * (1 - effectiveZoom) else Offset.Zero
 
                 val newOffset = offset + pan + zoomCompensation
 
-                val visibleRadius = radiusBase * newScale * 3f
-                val maxOffsetX = (canvasWidth / 2 + visibleRadius) - 50f
-                val maxOffsetY = (canvasHeight / 2 + visibleRadius) - 50f
-
-                offset = Offset(
-                    x = newOffset.x.coerceIn(-maxOffsetX, maxOffsetX),
-                    y = newOffset.y.coerceIn(-maxOffsetY, maxOffsetY)
-                )
+                offset = newOffset
 
                 scale = newScale
             }
@@ -100,7 +103,7 @@ fun GraphView(
             )
         }
     }
-}
+ }
 
 fun DrawScope.drawGraph(
     node: GraphNode,

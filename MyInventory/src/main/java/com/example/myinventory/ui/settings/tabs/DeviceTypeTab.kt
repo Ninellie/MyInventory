@@ -10,6 +10,7 @@ import com.example.myinventory.R
 import com.example.myinventory.data.models.DeviceType
 import com.example.myinventory.data.models.FieldType
 import com.example.myinventory.ui.components.AddItemField
+import com.example.myinventory.ui.components.ClearFiltersButton
 import com.example.myinventory.ui.components.ItemList
 import com.example.myinventory.ui.settings.ConfirmDeleteDialog
 import com.example.myinventory.ui.components.MultiSelectDropdown
@@ -25,19 +26,17 @@ fun DeviceTypeTab(viewModel: SettingsViewModel) {
     var editing by remember { mutableStateOf<DeviceType?>(null) }
     var deleting by remember { mutableStateOf<DeviceType?>(null) }
 
-    var deviceName by remember { mutableStateOf("") }
+    val deviceTypeName = remember { mutableStateOf("") }
 
     val selectedFieldTypeIdList = selectedFieldTypes.map { it.id }
 
     val filteredDeviceTypeList = deviceTypes.filter { deviceType ->
-        val matchName = deviceType.name.contains(deviceName, ignoreCase = true)
+        val matchName = deviceType.name.contains(deviceTypeName.value, ignoreCase = true)
         val matchType = deviceType.fieldTypeIdList.any { it in selectedFieldTypeIdList }
         matchName && (matchType || selectedFieldTypes.isEmpty())
     }.sortedBy { it.name }
 
     Column(Modifier.padding(16.dp)) {
-
-        // Выбор типов полей
         MultiSelectDropdown(
             label = stringResource(R.string.field_types),
             items = fieldTypes.sortedBy { it.name },
@@ -45,23 +44,34 @@ fun DeviceTypeTab(viewModel: SettingsViewModel) {
             onItemsSelected = { selectedFieldTypes = it },
             itemToString = { it.name }
         )
-        
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         AddItemField(
             label =  stringResource(R.string.new_device_type),
+            text = deviceTypeName,
             onAdd = { name ->
-                if (name.isNotBlank() && selectedFieldTypes.isNotEmpty()) {
+                if (name.isNotBlank()) {
                     viewModel.addDeviceType(name, selectedFieldTypes.map { it.id })
                     selectedFieldTypes = emptyList()
                 }
             },
-            onValueChange = {deviceName = it},
+            onValueChange = { },
         )
-        
+
+        if (selectedFieldTypes.isNotEmpty() || deviceTypeName.value != "") {
+            Spacer(modifier = Modifier.height(8.dp))
+            ClearFiltersButton(
+                onReset = {
+                    selectedFieldTypes = emptyList()
+                    deviceTypeName.value = ""
+                }
+            )
+
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Список типов устройств
+
         ItemList(
             items = filteredDeviceTypeList.sortedBy { it.name },
             getTitle = { it.name },

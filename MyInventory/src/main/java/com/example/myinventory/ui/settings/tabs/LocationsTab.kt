@@ -22,14 +22,13 @@ fun LocationsTab(viewModel: SettingsViewModel) {
     allSites.sortedBy { it.name }
     val allLocations by viewModel.locations.collectAsState()
 
-    var text by remember { mutableStateOf("") }
+    val locationName = remember { mutableStateOf("") }
 
     var selectedSite by remember { mutableStateOf<Site?>(null) }
 
     val filtered = allLocations.filter { location ->
-        val matchName = location.name.contains(text, ignoreCase = true)
+        val matchName = location.name.contains(locationName.value, ignoreCase = true)
         val matchSite = selectedSite?.id?.let { it == location.siteId } ?: true
-
         matchName && matchSite
     }.sortedBy { it.name }
 
@@ -47,25 +46,25 @@ fun LocationsTab(viewModel: SettingsViewModel) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (selectedSite != null) {
+        AddItemField(
+            label = stringResource(R.string.new_location),
+            text = locationName,
+            onAdd = { viewModel.addLocation(it, selectedSite!!.id) },
+            onValueChange = { },
+            isAddEnabled = locationName.value != "" && selectedSite != null
+        )
+
+        if (selectedSite != null || locationName.value != "") {
+            Spacer(modifier = Modifier.height(8.dp))
             ClearFiltersButton(
                 onReset = {
                     selectedSite = null
+                    locationName.value = ""
                 }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        if (selectedSite != null) {
-            AddItemField(
-                label = stringResource(R.string.new_location),
-                onAdd = { viewModel.addLocation(it, selectedSite!!.id) },
-                onValueChange = { text = it }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
 
         ItemList(
             items = filtered,
