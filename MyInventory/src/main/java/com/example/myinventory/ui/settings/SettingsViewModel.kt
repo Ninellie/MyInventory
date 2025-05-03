@@ -14,6 +14,8 @@ import com.example.myinventory.data.models.Site
 import com.example.myinventory.data.models.Vendor
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class SettingsViewModel(
     private val db: AppDatabase
@@ -78,6 +80,30 @@ class SettingsViewModel(
 
     fun addDevice(device: Device) = viewModelScope.launch {
         db.deviceDao().insert(device)
+    }
+
+    fun copyDevice(originalDevice: Device) = viewModelScope.launch {
+        val baseName = originalDevice.name.replace(Regex(""" \(copy(?: \d+)?\)$"""), "")
+
+        val matchingCopies = devices.value.filter {
+            it.name == "$baseName (copy)" || it.name.matches(Regex("""$baseName \(copy \d+\)"""))
+        }
+
+        val newName = when {
+            matchingCopies.isEmpty() -> "$baseName (copy)"
+            else -> "$baseName (copy ${matchingCopies.size + 1})"
+        }
+
+        val now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+        val copiedDevice = originalDevice.copy(
+            id = 0, // т.к. PrimaryKey = autoGenerate
+            name = newName,
+            createdAt = now,
+            updatedAt = now
+        )
+
+        db.deviceDao().insert(copiedDevice)
     }
 
     fun addField(fieldTypeId: Int, deviceId: Int, value: String = "") = viewModelScope.launch {
@@ -218,6 +244,8 @@ class SettingsViewModel(
         // Затем удаляем само устройство
         db.deviceDao().delete(device)
     }
+
+
 
     fun deleteField(field: Field) = viewModelScope.launch {
         db.fieldDao().delete(field)

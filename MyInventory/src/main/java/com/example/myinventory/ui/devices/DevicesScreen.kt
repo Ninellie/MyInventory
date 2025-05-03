@@ -241,6 +241,7 @@ fun DevicesScreen(
                         getSubtitle = { modelNameFor(it.modelId, deviceModels) },
                         onEdit = { editing = it },
                         onDelete = { deleting = it },
+                        onCopy = {viewModel.copyDevice(it)},
                         emptyMessage = "Empty"
                     )
                     
@@ -254,6 +255,7 @@ fun DevicesScreen(
                     getSubtitle = { modelNameFor(it.modelId, deviceModels) },
                     onEdit = { editing = it },
                     onDelete = { deleting = it },
+                    onCopy = {viewModel.copyDevice(it)},
                     emptyMessage = "Empty"
                 )
             }
@@ -301,6 +303,7 @@ fun DevicesScreen(
             }
         )
     }
+
 }
 
 private fun modelNameFor(modelId: Int, models: List<DeviceModel>) =

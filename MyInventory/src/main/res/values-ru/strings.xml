@@ -59,4 +59,5 @@
     <string name="selected_item">Выбранный</string>
     <string name="graph">Граф</string>
     <string name="root">Корень</string>
+    <string name="copy">Copy</string>
 </resources>

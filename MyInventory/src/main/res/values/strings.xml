@@ -91,4 +91,5 @@
     <string name="selected_item">Selected</string>
     <string name="graph">Graph</string>
     <string name="root">Root</string>
+    <string name="copy">Copy</string>
 </resources>
