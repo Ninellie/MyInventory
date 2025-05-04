@@ -33,7 +33,7 @@ fun LocationsTab(viewModel: SettingsViewModel) {
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<Location?>(null) }
-    var deleting by remember { mutableStateOf<Location?>(null) }
+    var deleting by remember { mutableStateOf<List<Location>?>(null) }
 
     Column(Modifier.padding(16.dp)) {
         DropdownSelector(
@@ -87,13 +87,15 @@ fun LocationsTab(viewModel: SettingsViewModel) {
         )
     }
 
-    deleting?.let {
+    // Диалог удаления
+    deleting?.let { locationsToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = locationsToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteLocation(it)
-                deleting = null}
+                viewModel.deleteLocations(locationsToDelete.toList())
+                deleting = null
+            }
         )
     }
 }
@@ -112,4 +114,3 @@ private fun getEmptyMessage(all: List<Location>, filtered: List<Location>) : Str
     }
     return ""
 }
-

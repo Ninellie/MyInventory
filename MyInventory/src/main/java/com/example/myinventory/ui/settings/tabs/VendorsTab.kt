@@ -25,7 +25,7 @@ fun VendorsTab(viewModel: SettingsViewModel) {
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<Vendor?>(null) }
-    var deleting by remember { mutableStateOf<Vendor?>(null) }
+    var deleting by remember { mutableStateOf<List<Vendor>?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         AddItemField(
@@ -66,12 +66,14 @@ fun VendorsTab(viewModel: SettingsViewModel) {
         )
     }
 
-    deleting?.let {
+
+    // Диалог удаления
+    deleting?.let { vendorsToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = vendorsToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteVendor(it)
+                viewModel.deleteVendors(vendorsToDelete.toList())
                 deleting = null
             }
         )

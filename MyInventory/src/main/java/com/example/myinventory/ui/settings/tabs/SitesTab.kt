@@ -25,7 +25,7 @@ fun SitesTab(viewModel: SettingsViewModel) {
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<Site?>(null) }
-    var deleting by remember { mutableStateOf<Site?>(null) }
+    var deleting by remember { mutableStateOf<List<Site>?>(null) }
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -68,12 +68,13 @@ fun SitesTab(viewModel: SettingsViewModel) {
         )
     }
 
-    deleting?.let {
+    // Диалог удаления
+    deleting?.let { sitesToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = sitesToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteSite(it)
+                viewModel.deleteSites(sitesToDelete.toList())
                 deleting = null
             }
         )

@@ -45,14 +45,21 @@ fun EditItemDialog(
 
 @Composable
 fun ConfirmDeleteDialog(
-    itemName: String,
+    itemNames: List<String>,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val message = when (itemNames.size) {
+        0 -> stringResource(R.string.nothing_selected)
+        1 -> stringResource(R.string.are_you_sure) + " \"${itemNames.first()}\"?"
+        else -> stringResource(R.string.are_you_sure_delete_multiple) + " (" + itemNames.size + ") " +
+                stringResource(R.string.items) + "?"
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.delete_quastion)) },
-        text = { Text(stringResource(R.string.are_you_sure).plus(" \"$itemName\"?")) },
+        text = { Text(message) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(stringResource(R.string.delete))

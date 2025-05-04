@@ -24,7 +24,7 @@ fun DeviceTypeTab(viewModel: SettingsViewModel) {
     var selectedFieldTypes by remember { mutableStateOf<List<FieldType>>(emptyList()) }
     
     var editing by remember { mutableStateOf<DeviceType?>(null) }
-    var deleting by remember { mutableStateOf<DeviceType?>(null) }
+    var deleting by remember { mutableStateOf<List<DeviceType>?>(null) }
 
     val deviceTypeName = remember { mutableStateOf("") }
 
@@ -144,12 +144,12 @@ fun DeviceTypeTab(viewModel: SettingsViewModel) {
     }
     
     // Диалог удаления
-    deleting?.let {
+    deleting?.let { deviceTypesToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = deviceTypesToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteDeviceType(it)
+                viewModel.deleteDeviceTypes(deviceTypesToDelete.toList())
                 deleting = null
             }
         )

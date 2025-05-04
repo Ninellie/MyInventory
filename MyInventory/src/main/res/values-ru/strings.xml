@@ -60,4 +60,7 @@
     <string name="graph">Граф</string>
     <string name="root">Корень</string>
     <string name="copy">Copy</string>
+    <string name="nothing_selected">ничего не выбрано...</string>
+    <string name="are_you_sure_delete_multiple">"Вы уверены, что хотите удалить несколько "</string>
+    <string name="items">предметов</string>
 </resources>

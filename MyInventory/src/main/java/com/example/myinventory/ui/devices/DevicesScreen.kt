@@ -42,8 +42,10 @@ fun DevicesScreen(
     var groupByDeviceType by remember { mutableStateOf(false) }
     
     var editing by remember { mutableStateOf<Device?>(null) }
-    var deleting by remember { mutableStateOf<Device?>(null) }
-    
+    var deleting by remember { mutableStateOf<List<Device>?>(null) }
+
+
+
     val filtered = devices.filter { device -> 
         val matchName = device.name.contains(searchQuery, ignoreCase = true)
         val matchSite = selectedSite?.id == null || 
@@ -241,7 +243,7 @@ fun DevicesScreen(
                         getSubtitle = { modelNameFor(it.modelId, deviceModels) },
                         onEdit = { editing = it },
                         onDelete = { deleting = it },
-                        onCopy = {viewModel.copyDevice(it)},
+                        onCopy = {viewModel.copyDevices(it)},
                         emptyMessage = "Empty"
                     )
                     
@@ -251,11 +253,27 @@ fun DevicesScreen(
                 // Обычный список без группировки
                 ItemList(
                     items = filtered.sortedBy { it.name },
-                    getTitle = { it.name },
-                    getSubtitle = { modelNameFor(it.modelId, deviceModels) },
+                    getTitle = { deviceModels.find { model ->
+                        model.id == it.modelId }?.name + " - " + it.name },
+                    getSubtitle = fun(device: Device): String {
+                        val location = locations.find { it.id == device.locationId }
+                        val site = sites.find { it.id == location?.siteId }
+                        val rack = racks.find { it.id == device.rackId }
+
+                        val subtitle = (site?.name ?: "")
+                            .plus(" - ")
+                            .plus(location?.name ?: "")
+
+                        return if ( rack != null ) {
+                            subtitle.plus(" - ")
+                                .plus(rack.name)
+                        } else {
+                            subtitle
+                        }
+                    },
                     onEdit = { editing = it },
                     onDelete = { deleting = it },
-                    onCopy = {viewModel.copyDevice(it)},
+                    onCopy = { viewModel.copyDevices(it) },
                     emptyMessage = "Empty"
                 )
             }
@@ -291,14 +309,13 @@ fun DevicesScreen(
             }
         )
     }
-    
-    // Диалог удаления
-    deleting?.let {
+
+    deleting?.let { devicesToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = devicesToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteDevice(it)
+                viewModel.deleteDevices(devicesToDelete.toList())
                 deleting = null
             }
         )
@@ -306,5 +323,6 @@ fun DevicesScreen(
 
 }
 
-private fun modelNameFor(modelId: Int, models: List<DeviceModel>) =
-    models.find { it.id == modelId }?.name ?: "unknown" 
+private fun modelNameFor(modelId: Int, models: List<DeviceModel>): String {
+    return models.find { it.id == modelId }?.name ?: "unknown"
+}

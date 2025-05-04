@@ -39,7 +39,7 @@ fun DeviceModelsTab(viewModel: SettingsViewModel) {
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<DeviceModel?>(null) }
-    var deleting by remember { mutableStateOf<DeviceModel?>(null) }
+    var deleting by remember { mutableStateOf<List<DeviceModel>?>(null) }
 
     val isAddEnable = selectedVendor != null && selectedType != null && modelName.value != ""
 
@@ -113,12 +113,12 @@ fun DeviceModelsTab(viewModel: SettingsViewModel) {
         )
     }
 
-    deleting?.let {
+    deleting?.let { deviceModelsToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = deviceModelsToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteDeviceModel(it)
+                viewModel.deleteDeviceModels(deviceModelsToDelete.toList())
                 deleting = null
             }
         )

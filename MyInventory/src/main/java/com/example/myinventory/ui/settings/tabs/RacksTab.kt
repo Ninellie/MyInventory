@@ -47,7 +47,7 @@ fun RacksTab(viewModel: SettingsViewModel) {
     }
 
     var editing by remember { mutableStateOf<Rack?>(null) }
-    var deleting by remember { mutableStateOf<Rack?>(null) }
+    var deleting by remember { mutableStateOf<List<Rack>?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
@@ -110,14 +110,17 @@ fun RacksTab(viewModel: SettingsViewModel) {
         )
     }
 
-    deleting?.let {
+    // Диалог удаления
+    deleting?.let { racksToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = racksToDelete.map { it.name },
             onDismiss = { deleting = null },
-            onConfirm = { viewModel.deleteRack(it); deleting = null }
+            onConfirm = {
+                viewModel.deleteRacks(racksToDelete.toList())
+                deleting = null
+            }
         )
     }
-
 }
 
 private fun getRackSubtitle(locations: List<Location>, sites: List<Site>, rack: Rack): String {

@@ -82,6 +82,37 @@ class SettingsViewModel(
         db.deviceDao().insert(device)
     }
 
+    fun copyDevices(originalDevices: List<Device>) = viewModelScope.launch {
+        val allDevices = devices.value.toMutableList()
+
+        for (original in originalDevices) {
+            val baseName = original.name.replace(Regex(""" \(copy(?: \d+)?\)$"""), "")
+
+            val matchingCopies = allDevices.filter {
+                it.name == "$baseName (copy)" || it.name.matches(Regex("""$baseName \(copy \d+\)"""))
+            }
+
+            val newName = when {
+                matchingCopies.isEmpty() -> "$baseName (copy)"
+                else -> "$baseName (copy ${matchingCopies.size + 1})"
+            }
+
+            val now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+            val copiedDevice = original.copy(
+                id = 0,
+                name = newName,
+                createdAt = now,
+                updatedAt = now
+            )
+
+            db.deviceDao().insert(copiedDevice)
+
+            // Обновляем локальный список, чтобы следующий знал о новых копиях
+            allDevices.add(copiedDevice)
+        }
+    }
+
     fun copyDevice(originalDevice: Device) = viewModelScope.launch {
         val baseName = originalDevice.name.replace(Regex(""" \(copy(?: \d+)?\)$"""), "")
 
@@ -204,24 +235,56 @@ class SettingsViewModel(
         db.siteDao().delete(site)
     }
 
+    fun deleteSites(sites: List<Site>) = viewModelScope.launch {
+        sites.forEach {
+            db.siteDao().delete(it)
+        }
+    }
+
     fun deleteLocation(location: Location) = viewModelScope.launch {
         db.locationDao().delete(location)
+    }
+
+    fun deleteLocations(locations: List<Location>) = viewModelScope.launch{
+        locations.forEach {
+            db.locationDao().delete(it)
+        }
     }
 
     fun deleteVendor(vendor: Vendor) = viewModelScope.launch {
         db.vendorDao().delete(vendor)
     }
 
+    fun deleteVendors(vendors: List<Vendor>) = viewModelScope.launch {
+        vendors.forEach {
+            db.vendorDao().delete(it)
+        }
+    }
+
     fun deleteDeviceType(type: DeviceType) = viewModelScope.launch {
         db.deviceTypeDao().delete(type)
+    }
+
+    fun deleteDeviceTypes(types: List<DeviceType>) = viewModelScope.launch {
+        types.forEach { db.deviceTypeDao().delete(it) }
     }
 
     fun deleteDeviceModel(model: DeviceModel) = viewModelScope.launch {
         db.deviceModelDao().delete(model)
     }
 
+    fun deleteDeviceModels(models: List<DeviceModel>) = viewModelScope.launch {
+        models.forEach { db.deviceModelDao().delete(it) }
+    }
+
     fun deleteRack(rack: Rack) = viewModelScope.launch {
         db.rackDao().delete(rack)
+    }
+
+    fun deleteRacks(racks: List<Rack>) = viewModelScope.launch {
+        racks.forEach {
+            db.rackDao().delete(it)
+        }
     }
 
     fun deleteFieldType(fieldType: FieldType) = viewModelScope.launch {
@@ -230,9 +293,21 @@ class SettingsViewModel(
         fieldsOfType.forEach { field ->
             db.fieldDao().delete(field)
         }
-        
+
         // Затем удаляем сам тип поля
         db.fieldTypeDao().delete(fieldType)
+    }
+
+    fun deleteFieldTypes(fieldTypes: List<FieldType>) = viewModelScope.launch {
+        fieldTypes.forEach { fieldType ->
+            val fieldsOfType = fields.value.filter { it.fieldTypeId == fieldType.id }
+            fieldsOfType.forEach { field ->
+                db.fieldDao().delete(field)
+            }
+
+            // Затем удаляем сам тип поля
+            db.fieldTypeDao().delete(fieldType)
+        }
     }
 
     fun deleteDevice(device: Device) = viewModelScope.launch {
@@ -245,7 +320,13 @@ class SettingsViewModel(
         db.deviceDao().delete(device)
     }
 
-
+    fun deleteDevices(devices: List<Device>) = viewModelScope.launch {
+        devices.forEach { device ->
+            val deviceFields = fields.value.filter { it.deviceId == device.id }
+            deviceFields.forEach { db.fieldDao().delete(it) }
+            db.deviceDao().delete(device)
+        }
+    }
 
     fun deleteField(field: Field) = viewModelScope.launch {
         db.fieldDao().delete(field)
@@ -268,5 +349,8 @@ class SettingsViewModel(
     fun getFieldsByDevice(deviceId: Int): Flow<List<Field>> {
         return db.fieldDao().getByDevice(deviceId)
     }
+
+
+
 }
 

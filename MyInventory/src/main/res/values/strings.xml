@@ -92,4 +92,7 @@
     <string name="graph">Graph</string>
     <string name="root">Root</string>
     <string name="copy">Copy</string>
+    <string name="nothing_selected">nothing selected...</string>
+    <string name="are_you_sure_delete_multiple">Are you sure delete multiple</string>
+    <string name="items">items</string>
 </resources>

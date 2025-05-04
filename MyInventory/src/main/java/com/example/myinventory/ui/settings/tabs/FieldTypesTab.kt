@@ -30,7 +30,7 @@ fun FieldTypesTab(viewModel: SettingsViewModel) {
     }.sortedBy { it.name }
 
     var editing by remember { mutableStateOf<FieldType?>(null) }
-    var deleting by remember { mutableStateOf<FieldType?>(null) }
+    var deleting by remember { mutableStateOf<List<FieldType>?>(null) }
 
     val valueTypeKeys: Map<String, String> = mapOf(
         stringResource(R.string.field_type_text_key) to stringResource(R.string.field_type_text),
@@ -129,12 +129,12 @@ fun FieldTypesTab(viewModel: SettingsViewModel) {
     }
 
     // Диалог удаления
-    deleting?.let {
+    deleting?.let { fieldTypesToDelete ->
         ConfirmDeleteDialog(
-            itemName = it.name,
+            itemNames = fieldTypesToDelete.map { it.name },
             onDismiss = { deleting = null },
             onConfirm = {
-                viewModel.deleteFieldType(it)
+                viewModel.deleteFieldTypes(fieldTypesToDelete.toList())
                 deleting = null
             }
         )
